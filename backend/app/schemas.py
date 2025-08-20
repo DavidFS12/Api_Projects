@@ -20,6 +20,9 @@ class Gasto(GastoBase):
 
 class ProyectoBase(BaseModel):
     nombre: str
+    location: Optional[str] = None
+    agua: int
+    luz: int
     descripcion: Optional[str] = None
 
 class ProyectoCreate(ProyectoBase):
@@ -28,6 +31,21 @@ class ProyectoCreate(ProyectoBase):
 class Proyecto(ProyectoBase):
     id: int
     gastos: List[Gasto] = []
+
+    class Config:
+        orm_mode = True
+
+
+class UserBase(BaseModel):
+    name: str
+    email: str
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: int
+    proyectos: List[Proyecto] = []
 
     class Config:
         orm_mode = True
