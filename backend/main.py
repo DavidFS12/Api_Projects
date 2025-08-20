@@ -3,10 +3,27 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.db.database import engine
 from app.db.deps import get_db
+from passlib.context import CryptContext
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Sistema de Control de Gastos")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+@app.post("/user/", response_model=schemas.User)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    db_user = models.User(name=user.name, email=user.email, hashed_password=hash_password(user.password))
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def hash_password(password:str):
+    return pwd_context.hash(password)
+
+@app.get("/user/", response_model=list[schemas.User])
+def get_users(db: Session = Depends(get_db)):
+    return db.query(models.User).all()
 
 @app.post("/proyectos/", response_model=schemas.Proyecto)
 def crear_proyecto(proyecto: schemas.ProyectoCreate, db: Session = Depends(get_db)):
