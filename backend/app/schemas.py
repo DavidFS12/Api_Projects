@@ -9,6 +9,8 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: str | None = None
+
+    #------------------- GASTOS --------------------------
 class GastoBase(BaseModel):
     descripcion: str
     monto: float
@@ -24,7 +26,7 @@ class Gasto(GastoBase):
     class Config:
         orm_mode = True
 
-
+#------------------- PROYECTOS --------------------------
 class ProyectoBase(BaseModel):
     nombre: str
     location: Optional[str] = None
@@ -37,12 +39,13 @@ class ProyectoCreate(ProyectoBase):
 
 class Proyecto(ProyectoBase):
     id: int
+    owner_id: int
     gastos: List[Gasto] = []
 
     class Config:
         orm_mode = True
 
-
+#------------------- USUARIOS --------------------------
 class UserBase(BaseModel):
     name: str
     email: str

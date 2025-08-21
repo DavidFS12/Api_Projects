@@ -31,7 +31,8 @@ for i in range(5):
 else:
     raise Exception("❌ No se pudo conectar a la base de datos después de varios intentos")
 
-@app.post("/register", response_model=schemas.User)
+#------------------- USUARIOS --------------------------
+@app.post("/register/", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.email == user.email).first()
     if existing_user:
@@ -46,15 +47,6 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_user)
     return db_user
-
-def verify_password(plain_password:str, hashed_password:str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
-def create_access_token(data:dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 @app.post("/login/")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -78,6 +70,7 @@ def read_users_me(current_user: schemas.User = Depends(get_current_user)):
 def get_users(db: Session = Depends(get_db)):
     return db.query(models.User).all()
 
+#------------------- PROYECTOS --------------------------
 @app.post("/proyectos/", response_model=schemas.Proyecto)
 def crear_proyecto(proyecto: schemas.ProyectoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     db_proyecto = models.Proyecto(**proyecto.dict(), owner_id=current_user.id)
@@ -90,6 +83,38 @@ def crear_proyecto(proyecto: schemas.ProyectoCreate, db: Session = Depends(get_d
 def listar_proyectos(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     return db.query(models.Proyecto).filter(models.Proyecto.owner_id == current_user.id).all()
 
+@app.get("/proyectos/{proyecto_id}", response_model=schemas.Proyecto)
+def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no autorizado")
+    return proyecto
+
+@app.put("/proyectos/{proyecto_id}", response_model=schemas.Proyecto)
+def actualizar_proyecto(proyecto_id: int, datos: schemas.ProyectoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no autorizado en actualizar")
+    for key, value in datos.dict().items():
+        setattr(proyecto, key, value)
+
+    db.commit()
+    db.refresh(proyecto)
+    return proyecto
+
+@app.delete("/proyectos/{proyectos_id}", response_model=schemas.Proyecto)
+def eliminar_proyecto(proyecto_id:int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no autorizado en eliminar")
+    db.delete(proyecto)
+    db.commit()
+    
+    return {"message": "Proyecto eliminado correctamente", "proyecto": proyecto}
+
+#-----------------------------------------------------
+
+#------------------- GASTOS --------------------------
 @app.post("/gastos/{proyecto_id}", response_model=schemas.Gasto)
 def crear_gasto(proyecto_id: int, gasto: schemas.GastoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
@@ -115,3 +140,5 @@ def listar_gastos(
         raise HTTPException(status_code=404, detail="Proyecto no encontrado o no autorizado")
 
     return db.query(models.Gasto).filter(models.Gasto.proyecto_id == proyecto_id).all()
+
+#-----------------------------------------------------
