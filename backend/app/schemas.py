@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List
 
-
+#------------------- AUTENTICACION --------------------------
 class Token(BaseModel):
     access_token: str
     token_type:str
@@ -12,9 +12,13 @@ class TokenData(BaseModel):
 
     #------------------- GASTOS --------------------------
 class GastoBase(BaseModel):
-    descripcion: str
-    monto: float
+    nombre: str
+    cantidad: float
+    p_unitario: float
+    p_total: float
     categoria: Optional[str] = None
+    proyecto_id:int
+    descripcion: Optional[str] = None
 
 class GastoCreate(GastoBase):
     pass
