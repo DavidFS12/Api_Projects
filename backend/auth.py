@@ -16,13 +16,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-def get_db():
-  db = SessionLocal()
-  try:
-    yield db
-  finally:
-    db.close()
-
 def verify_password(plain_password, hashed_password):
   return pwd_context.verify(plain_password, hashed_password)
 
@@ -44,10 +37,10 @@ def authenticate_user(db: Session, email:str, password:str):
     return False
   return user
 
-def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
   credentials_exception = HTTPException(
     status_code = status.HTTP_401_UNAUTHORIZED,
-    detail = "credenciales invalidas",
+    detail = "No se pudo validar las credenciales",
     headers = { "WWW-Authenticate": "Bearer" },
   )
   try:
@@ -55,7 +48,6 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     email: str = payload.get("sub")
     if email is None:
       raise credentials_exception
-    
   except JWTError:
     raise credentials_exception
 
