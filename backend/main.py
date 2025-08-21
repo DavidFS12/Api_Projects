@@ -8,6 +8,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt
 from datetime import datetime, timedelta
 from auth import authenticate_user, create_access_token, get_password_hash, get_current_user
+import time
+from sqlalchemy.exc import OperationalError
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -17,6 +19,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 
+for i in range(5):
+    try:
+        conn = engine.connect()
+        conn.close()
+        print("✅ Conectado a la base de datos")
+        break
+    except OperationalError:
+        print("⏳ Base de datos no lista, reintentando...")
+        time.sleep(3)
+else:
+    raise Exception("❌ No se pudo conectar a la base de datos después de varios intentos")
 
 @app.post("/register", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -66,19 +79,22 @@ def get_users(db: Session = Depends(get_db)):
     return db.query(models.User).all()
 
 @app.post("/proyectos/", response_model=schemas.Proyecto)
-def crear_proyecto(proyecto: schemas.ProyectoCreate, db: Session = Depends(get_db)):
-    db_proyecto = models.Proyecto(**proyecto.dict())
+def crear_proyecto(proyecto: schemas.ProyectoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    db_proyecto = models.Proyecto(**proyecto.dict(), owner_id=current_user.id)
     db.add(db_proyecto)
     db.commit()
     db.refresh(db_proyecto)
     return db_proyecto
 
 @app.get("/proyectos/", response_model=list[schemas.Proyecto])
-def listar_proyectos(db: Session = Depends(get_db)):
-    return db.query(models.Proyecto).all()
+def listar_proyectos(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return db.query(models.Proyecto).filter(models.Proyecto.owner_id == current_user.id).all()
 
 @app.post("/gastos/{proyecto_id}", response_model=schemas.Gasto)
-def crear_gasto(proyecto_id: int, gasto: schemas.GastoCreate, db: Session = Depends(get_db)):
+def crear_gasto(proyecto_id: int, gasto: schemas.GastoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
     db_gasto = models.Gasto(**gasto.dict(), proyecto_id=proyecto_id)
     db.add(db_gasto)
     db.commit()
@@ -86,5 +102,16 @@ def crear_gasto(proyecto_id: int, gasto: schemas.GastoCreate, db: Session = Depe
     return db_gasto
 
 @app.get("/gastos/{proyecto_id}", response_model=list[schemas.Gasto])
-def listar_gastos(proyecto_id: int, db: Session = Depends(get_db)):
+def listar_gastos(
+    proyecto_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)  # <- obligatorio
+):
+    proyecto = db.query(models.Proyecto).filter(
+        models.Proyecto.id == proyecto_id,
+        models.Proyecto.owner_id == current_user.id
+    ).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no autorizado")
+
     return db.query(models.Gasto).filter(models.Gasto.proyecto_id == proyecto_id).all()
