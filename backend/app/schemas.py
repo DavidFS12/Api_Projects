@@ -2,6 +2,13 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List
 
+
+class Token(BaseModel):
+    access_token: str
+    token_type:str
+
+class TokenData(BaseModel):
+    email: str | None = None
 class GastoBase(BaseModel):
     descripcion: str
     monto: float

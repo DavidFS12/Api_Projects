@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from app.db.database import SessionLocal
 from app import models
 from app.db.deps import get_db
 
@@ -14,6 +15,13 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def get_db():
+  db = SessionLocal()
+  try:
+    yield db
+  finally:
+    db.close()
 
 def verify_password(plain_password, hashed_password):
   return pwd_context.verify(plain_password, hashed_password)

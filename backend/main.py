@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app import models, schemas
-from app.db.database import engine
+from app.db.database import engine, SessionLocal
 from app.db.deps import get_db
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm
@@ -18,8 +18,23 @@ SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 @app.post("/register/", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    existing_user = db.query(models.User).filter(models.User.email == user.email).firts()
+    if existing_user:
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail = "Email ya esta registrado",
+        )
+    
     hashed_pw = get_password_hash(user.password)
     db_user = models.User(name=user.name, email=user.email, hashed_password=hashed_pw)
     db.add(db_user)
@@ -63,7 +78,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 @app.get("/user/me/", response_model=schemas.User)
 def read_users_me(current_user: schemas.User = Depends(get_current_user)):
-    return current_user
+    return {"Email":current_user.email}
 
 @app.get("/user/", response_model=list[schemas.User])
 def get_users(db: Session = Depends(get_db)):
