@@ -48,6 +48,13 @@ class ProyectoBase(BaseModel):
 class ProyectoCreate(ProyectoBase):
     pass
 
+class ProyectoUpdate(ProyectoBase):
+    nombre: Optional[str] = None
+    location: Optional[str] = None
+    agua: Optional[int] = None
+    luz: Optional[int] = None
+    descripcion: Optional[str] = None
+
 class Proyecto(ProyectoBase):
     id: int
     owner_id: int

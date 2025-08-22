@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from auth import authenticate_user, create_access_token, get_password_hash, get_current_user
 import time
 from sqlalchemy.exc import OperationalError
+from sqlalchemy import func
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -91,11 +92,13 @@ def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db), current_us
     return proyecto
 
 @app.put("/proyectos/{proyecto_id}", response_model=schemas.Proyecto)
-def actualizar_proyecto(proyecto_id: int, datos: schemas.ProyectoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def actualizar_proyecto(proyecto_id: int, datos_update: schemas.ProyectoUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
     if not proyecto:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado o no autorizado en actualizar")
-    for key, value in datos.dict().items():
+    
+    update_data = datos_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
         setattr(proyecto, key, value)
 
     db.commit()
@@ -155,7 +158,8 @@ def actualizar_gasto(gasto_id: int, gasto_update: schemas.GastoUpdate, db: Sessi
     for key, value in update_data.items():
         setattr(db_gasto, key, value)
 
-    db_gasto.p_total = db_gasto.cantidad * db_gasto.p_unitario
+    if "cantidad" in update_data or "p_unitario" in update_data:
+        db_gasto.p_total = (db_gasto.cantidad or 0) * (db_gasto.p_unitario or 0)
 
     db.commit()
     db.refresh(db_gasto)
@@ -163,15 +167,13 @@ def actualizar_gasto(gasto_id: int, gasto_update: schemas.GastoUpdate, db: Sessi
 
 @app.delete("/gastos/{gasto_id}", response_model=schemas.Gasto)
 def eliminar_gasto(gasto_id:int, db:Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    gasto = db.query(models.Gasto).join(models.Proyecto).filter(models.Gasto.id == gasto_id, models.Proyecto.owner_id == current_user.id).first()
-    if not gasto:
+    db_gasto = db.query(models.Gasto).join(models.Proyecto).filter(models.Gasto.id == gasto_id, models.Proyecto.owner_id == current_user.id).first()
+    if not db_gasto:
         raise HTTPException(status_code=404, detail="Gasto no encontrado o no autorizado en eliminar")
-    db.delete(gasto)
+    db.delete(db_gasto)
     db.commit()
     
-    return {"message": "Gasto eliminado correctamente", "gasto": gasto}
-
-#-----------------------------------------------------
+    return {"message": "Gasto eliminado correctamente", "gasto": db_gasto}
 
 #------------------- Proyecto + gastos --------------------------
 @app.get("/proyectos/{proyecto_id}/gastos", response_model=list[schemas.Gasto])
@@ -180,4 +182,54 @@ def gastos_del_proyecto(proyecto_id: int, db: Session = Depends(get_db), current
     if not proyecto:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
 
-    return proyecto.gastos
+    return proyecto.gasto
+
+#-------------------- REPORTE DE PROYECTO + GASTO ---------------
+@app.get("/proyectos/{proyecto_id}/resumen")
+def resumen_proyecto(proyecto_id:int, db:Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no autorizado en resumen")
+    
+    total_gastos = db.query(func.sum(models.Gasto.p_total)).filter(models.Gasto.proyecto_id == proyecto_id).scalar() or 0
+    gastos_por_categoria = db.query(models.Gasto.categoria, func.sum(models.Gasto.p_total)).filter(models.Gasto.proyecto_id == proyecto_id).group_by(models.Gasto.categoria).all()
+    categoria_dic = {categoria: total for categoria, total in gastos_por_categoria}
+    numero_gastos = db.query(models.Gasto).filter(models.Gasto.proyecto_id == proyecto_id).count()
+
+    return {
+        "proyecto": proyecto,
+        "total_gastos": total_gastos,
+        "gastos_por_categoria": categoria_dic,
+        "numero_gastos": numero_gastos
+    }
+
+@app.get("/reportes/general")
+def reporte_general(db:Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
+    proyecto = db.query(models.Proyecto).filter(models.Proyecto.owner_id == current_user.id).all()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="No se encontraron proyectos para el usuario actual")
+    
+    reportes = []
+    gasto_total_general = 0
+
+    for p in proyecto:
+        total_gastos = db.query(func.sum(models.Gasto.p_total)).filter(models.Gasto.proyecto_id == p.id).scalar() or 0
+        gastos_por_categoria = db.query(models.Gasto.categoria, func.sum(models.Gasto.p_total)).filter(models.Gasto.proyecto_id == p.id).group_by(models.Gasto.categoria).all()
+        categoria_dic = {categoria: total for categoria, total in gastos_por_categoria}
+        numero_gastos = db.query(models.Gasto).filter(models.Gasto.proyecto_id == p.id).count()
+
+        reportes.append({
+            "proyecto": p,
+            "gasto_total": total_gastos,
+            "numero_gastos": numero_gastos,
+            "por_categoria": categoria_dic
+        })
+
+        gasto_total_general += total_gastos
+    
+    return {
+        "usuario": current_user.name,
+        "gasto_total_general": gasto_total_general,
+        "detalle_proyecto": reportes
+    }
+
