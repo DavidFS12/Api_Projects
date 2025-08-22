@@ -15,17 +15,24 @@ class GastoBase(BaseModel):
     nombre: str
     cantidad: float
     p_unitario: float
-    p_total: float
     categoria: Optional[str] = None
-    proyecto_id:int
     descripcion: Optional[str] = None
 
 class GastoCreate(GastoBase):
     pass
 
+class GastoUpdate(GastoBase):
+    nombre: Optional[str] = None
+    cantidad: Optional[float] = None
+    p_unitario: Optional[float] = None
+    categoria: Optional[str] = None
+    descripcion: Optional[str] = None
+
 class Gasto(GastoBase):
     id: int
+    p_total: float
     fecha: datetime
+    proyecto_id: int
 
     class Config:
         orm_mode = True
