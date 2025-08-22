@@ -115,12 +115,20 @@ def eliminar_proyecto(proyecto_id:int, db: Session = Depends(get_db), current_us
 #-----------------------------------------------------
 
 #------------------- GASTOS --------------------------
-@app.post("/gastos/", response_model=schemas.Gasto)
-def crear_gasto(gasto: schemas.GastoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == gasto.proyecto_id, models.Proyecto.owner_id == current_user.id).first()
+@app.post("/proyectos/{proyecto_id}/gastos", response_model=schemas.Gasto)
+def crear_gasto(proyecto_id:int, gasto: schemas.GastoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
     if not proyecto:
-        raise HTTPException(status_code=403, detail="No se agrego el gasto")
-    db_gasto = models.Gasto(**gasto.dict())
+        raise HTTPException(status_code=403, detail="No se encontro el proyecto en crear gasto")
+    db_gasto = models.Gasto(
+        nombre=gasto.nombre,
+        cantidad=gasto.cantidad,
+        p_unitario=gasto.p_unitario,
+        p_total=gasto.p_unitario * gasto.cantidad,
+        categoria=gasto.categoria,
+        descripcion=gasto.descripcion,
+        proyecto_id=proyecto_id
+    )
     db.add(db_gasto)
     db.commit()
     db.refresh(db_gasto)
@@ -138,12 +146,16 @@ def obtener_gastos(gasto_id: int, db: Session = Depends(get_db), current_user: m
     return gasto
 
 @app.put("/gastos/{gasto_id}", response_model=schemas.Gasto)
-def actualizar_gasto(gasto_id: int, gasto: schemas.Gasto, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def actualizar_gasto(gasto_id: int, gasto_update: schemas.GastoUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     db_gasto = db.query(models.Gasto).join(models.Proyecto).filter(models.Gasto.id == gasto_id, models.Proyecto.owner_id == current_user.id).first()
     if not db_gasto:
         raise HTTPException(status_code=404, detail="Gasto no encontrado o no autorizado en actualizar")
-    for key, value in gasto.dict(exclude_unset=True).items():
+    
+    update_data = gasto_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
         setattr(db_gasto, key, value)
+
+    db_gasto.p_total = db_gasto.cantidad * db_gasto.p_unitario
 
     db.commit()
     db.refresh(db_gasto)
