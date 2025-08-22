@@ -2,17 +2,23 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List
 
-
+#------------------- AUTENTICACION --------------------------
 class Token(BaseModel):
     access_token: str
     token_type:str
 
 class TokenData(BaseModel):
     email: str | None = None
+
+    #------------------- GASTOS --------------------------
 class GastoBase(BaseModel):
-    descripcion: str
-    monto: float
+    nombre: str
+    cantidad: float
+    p_unitario: float
+    p_total: float
     categoria: Optional[str] = None
+    proyecto_id:int
+    descripcion: Optional[str] = None
 
 class GastoCreate(GastoBase):
     pass
@@ -24,7 +30,7 @@ class Gasto(GastoBase):
     class Config:
         orm_mode = True
 
-
+#------------------- PROYECTOS --------------------------
 class ProyectoBase(BaseModel):
     nombre: str
     location: Optional[str] = None
@@ -37,12 +43,13 @@ class ProyectoCreate(ProyectoBase):
 
 class Proyecto(ProyectoBase):
     id: int
+    owner_id: int
     gastos: List[Gasto] = []
 
     class Config:
         orm_mode = True
 
-
+#------------------- USUARIOS --------------------------
 class UserBase(BaseModel):
     name: str
     email: str

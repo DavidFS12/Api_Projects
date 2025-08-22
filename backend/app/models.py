@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from .db.database import Base
 
 
+#------------------- USUARIOS --------------------------
 class User(Base):
     __tablename__ = "users"
 
@@ -11,8 +12,10 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
 
-    proyectos = relationship("Proyecto", back_populates="owner")
+    proyectos = relationship("Proyecto", back_populates="owner", cascade = "all, delete")
 
+
+#------------------- PROYECTOS --------------------------
 class Proyecto(Base):
     __tablename__ = "proyectos"
 
@@ -25,16 +28,21 @@ class Proyecto(Base):
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner= relationship("User", back_populates="proyectos")
-    gastos = relationship("Gasto", back_populates="proyecto")
+    gastos = relationship("Gasto", back_populates="proyecto", cascade="all, delete-orphan")
 
+
+#------------------- GASTOS --------------------------
 class Gasto(Base):
     __tablename__ = "gastos"
 
     id = Column(Integer, primary_key=True, index=True)
-    descripcion = Column(String, index=True)
-    monto = Column(Float, nullable=False)
+    nombre = Column(String, index=True)
+    cantidad = Column(Float, nullable=False)
+    p_unitario = Column(Float, nullable=False)
+    p_total = Column(Float, nullable=False)
     fecha = Column(DateTime, default=func.now())
     categoria = Column(String, nullable=True)
+    descripcion = Column(String, index=True)
 
-    proyecto_id = Column(Integer, ForeignKey("proyectos.id"))
+    proyecto_id = Column(Integer, ForeignKey("proyectos.id"), nullable=False)
     proyecto = relationship("Proyecto", back_populates="gastos")
