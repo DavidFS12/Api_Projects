@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional, List
 
@@ -12,9 +12,9 @@ class TokenData(BaseModel):
 
     #------------------- GASTOS --------------------------
 class GastoBase(BaseModel):
-    nombre: str
-    cantidad: float
-    p_unitario: float
+    nombre: str = Field(..., min_length=2, max_length=100)
+    cantidad: float = Field(..., gt=0, descripcion="Cantidad debe ser mayor que 0")
+    p_unitario: float = Field(..., gt=0, descripcion="Precio unitario debe ser mayor que 0")
     categoria: Optional[str] = None
     descripcion: Optional[str] = None
 
