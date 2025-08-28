@@ -11,3 +11,6 @@ passlib[bcrypt]
 python-jose[cryptography]
 python-multipart
 alembic
+openpyxl
+reportlab
+pandas
