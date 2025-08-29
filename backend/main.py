@@ -104,7 +104,9 @@ def crear_proyecto(proyecto: schemas.ProyectoCreate, db: Session = Depends(get_d
 
 @app.get("/proyectos/", response_model=list[schemas.Proyecto])
 def listar_proyectos(nombre: Optional[str]=None, fecha_inicio:Optional[date]=None, fecha_fin:Optional[date]=None, min_gasto:Optional[float]=None, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    query = db.query(models.Proyecto).filter(models.Proyecto.owner_id == current_user.id).all()
+    query = db.query(models.Proyecto)
+    if current_user.role != "admin":
+        query = query.filter(models.Proyecto.owner_id == current_user.id)
 
     if nombre:
         query = query.filter(models.Proyecto.nombre.ilike(f"%{nombre}%"))
@@ -114,10 +116,7 @@ def listar_proyectos(nombre: Optional[str]=None, fecha_inicio:Optional[date]=Non
     if min_gasto:
         proyecto = [p for p in proyecto if sum(g.p_total for g in p.gasto) >= min_gasto]
 
-    if current_user.role == "admin":
-        return proyecto
-    else:
-        return proyecto.filter(models.Proyecto.owner_id == current_user.id).all()
+    return proyecto
 
 @app.get("/proyectos/{proyecto_id}", response_model=schemas.Proyecto)
 def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
@@ -157,24 +156,6 @@ def eliminar_proyecto(proyecto_id:int, db: Session = Depends(get_db), current_us
     return {"message": "Proyecto eliminado correctamente", "proyecto": proyecto}
 
 #------------------- GASTOS --------------------------
-@app.post("/proyectos/{proyecto_id}/gastos", response_model=schemas.Gasto)
-def crear_gasto(proyecto_id:int, gasto: schemas.GastoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
-    if not proyecto:
-        raise HTTPException(status_code=403, detail="No se encontro el proyecto en crear gasto")
-    db_gasto = models.Gasto(
-        nombre=gasto.nombre,
-        cantidad=gasto.cantidad,
-        p_unitario=gasto.p_unitario,
-        p_total=gasto.p_unitario * gasto.cantidad,
-        categoria=gasto.categoria,
-        descripcion=gasto.descripcion,
-        proyecto_id=proyecto_id
-    )
-    db.add(db_gasto)
-    db.commit()
-    db.refresh(db_gasto)
-    return db_gasto
 
 @app.get("/gastos/", response_model=list[schemas.Gasto])
 def listar_gastos(categoria: Optional[str]=None, fecha_inicio: Optional[date]=None, fecha_fin: Optional[date]=None, min_total: Optional[float]=None, max_total: Optional[float]=None, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
@@ -237,13 +218,35 @@ def eliminar_gasto(gasto_id:int, db:Session = Depends(get_db), current_user: mod
     return {"message": "Gasto eliminado correctamente", "gasto": gasto}
 
 #------------------- Proyecto + gastos --------------------------
-@app.get("/proyectos/{proyecto_id}/gastos", response_model=list[schemas.Gasto])
-def gastos_del_proyecto(proyecto_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+@app.post("/proyectos/{proyecto_id}/gastos", response_model=schemas.Gasto)
+def crear_gasto(proyecto_id:int, gasto: schemas.GastoCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id, models.Proyecto.owner_id == current_user.id).first()
     if not proyecto:
-        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+        raise HTTPException(status_code=403, detail="No se encontro el proyecto en crear gasto")
+    db_gasto = models.Gasto(
+        nombre=gasto.nombre,
+        cantidad=gasto.cantidad,
+        p_unitario=gasto.p_unitario,
+        p_total=gasto.p_unitario * gasto.cantidad,
+        categoria=gasto.categoria,
+        descripcion=gasto.descripcion,
+        proyecto_id=proyecto_id
+    )
+    db.add(db_gasto)
+    db.commit()
+    db.refresh(db_gasto)
+    return db_gasto
 
-    return proyecto.gasto
+@app.get("/proyectos/{proyecto_id}/gastos", response_model=list[schemas.Gasto])
+def gastos_del_proyecto(proyecto_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    
+    if current_user.role != "admin" and proyecto.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="No tienes permisos")
+
+    return proyecto.gastos
 
 #-------------------- REPORTE DE PROYECTO + GASTO ---------------
 @app.get("/proyectos/{proyecto_id}/resumen")
