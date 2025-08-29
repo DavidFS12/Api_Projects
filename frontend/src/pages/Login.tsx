@@ -1,6 +1,5 @@
 import React, { useState, FormEvent } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 interface LoginResponse {
   access_token: string;
@@ -11,35 +10,39 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const navigate = useNavigate();
+
+  const { login } = useAuth(); // usamos login del contexto
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     try {
-      const body = new URLSearchParams();
-      body.append("username", email); // 👈 FastAPI espera 'username'
-      body.append("password", password);
+      // Enviamos los datos como x-www-form-urlencoded (FastAPI espera esto)
+      const res = await fetch("http://localhost:8000/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          username: email,
+          password: password,
+        }),
+      });
 
-      const res = await axios.post<LoginResponse>(
-        "http://localhost:8000/login/",
-        body,
-        {
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        }
-      );
-
-      localStorage.setItem("token", res.data.access_token);
-      navigate("/dashboard");
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(
-          (err.response?.data as any)?.detail ?? "Credenciales incorrectas"
-        );
-      } else {
-        setError("Error inesperado");
+      // Si hay error de credenciales
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || "Credenciales incorrectas");
       }
+
+      // Login correcto
+      const data: LoginResponse = await res.json();
+
+      // Llamamos al contexto para guardar token y redirigir
+      login(data.access_token);
+    } catch (err: any) {
+      setError(err.message || "Error inesperado");
     }
   };
 

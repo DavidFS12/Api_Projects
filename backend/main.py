@@ -19,6 +19,7 @@ from auth import authenticate_user, create_access_token, get_password_hash, get_
 import pandas as pd
 from typing import Optional
 from datetime import date
+from fastapi.middleware.cors import CORSMiddleware
 import time
 
 
@@ -32,6 +33,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
+
+app.add_middleware(
+    CORSMiddleware, 
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 for i in range(5):
     try:
@@ -95,7 +104,9 @@ def crear_proyecto(proyecto: schemas.ProyectoCreate, db: Session = Depends(get_d
 
 @app.get("/proyectos/", response_model=list[schemas.Proyecto])
 def listar_proyectos(nombre: Optional[str]=None, fecha_inicio:Optional[date]=None, fecha_fin:Optional[date]=None, min_gasto:Optional[float]=None, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    query = db.query(models.Proyecto).filter(models.Proyecto.owner_id == current_user.id).all()
+    query = db.query(models.Proyecto)
+    if current_user.role != "admin":
+        query = query.filter(models.Proyecto.owner_id == current_user.id)
 
     if nombre:
         query = query.filter(models.Proyecto.nombre.ilike(f"%{nombre}%"))
@@ -105,10 +116,7 @@ def listar_proyectos(nombre: Optional[str]=None, fecha_inicio:Optional[date]=Non
     if min_gasto:
         proyecto = [p for p in proyecto if sum(g.p_total for g in p.gasto) >= min_gasto]
 
-    if current_user.role == "admin":
-        return proyecto
-    else:
-        return proyecto.filter(models.Proyecto.owner_id == current_user.id).all()
+    return proyecto
 
 @app.get("/proyectos/{proyecto_id}", response_model=schemas.Proyecto)
 def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
