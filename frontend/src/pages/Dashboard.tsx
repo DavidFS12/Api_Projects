@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getUserFromToken } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface Proyecto {
   id: number;
@@ -13,6 +14,7 @@ const Dashboard: React.FC = () => {
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [userEmail, setUserEmail] = useState<string>("");
   const [userRol, setUserRol] = useState<string>("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (token) {
@@ -53,6 +55,12 @@ const Dashboard: React.FC = () => {
         {proyectos.map((proyecto) => (
           <li key={proyecto.id} className="mb-2 p-2 border rounded">
             {proyecto.nombre}
+            <button
+              onClick={() => navigate(`/proyectos/${proyecto.id}`)}
+              className="bg-red-500 text-white px-4 py-2 rounded"
+            >
+              Ver Detalle
+            </button>
           </li>
         ))}
       </ul>

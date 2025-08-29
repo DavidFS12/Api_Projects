@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Layout from "./components/Layout";
 import PrivateRoute from "@/components/PrivateRoute";
+import ProyectoDetalle from "./pages/ProyectoDetalle";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           }
         />
       </Route>
+      <Route path="/proyectos/:id" element={<ProyectoDetalle />} />
     </Routes>
   );
 }
