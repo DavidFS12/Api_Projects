@@ -19,6 +19,7 @@ from auth import authenticate_user, create_access_token, get_password_hash, get_
 import pandas as pd
 from typing import Optional
 from datetime import date
+from fastapi.middleware.cors import CORSMiddleware
 import time
 
 
@@ -32,6 +33,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
+
+app.add_middleware(
+    CORSMiddleware, 
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 for i in range(5):
     try:
