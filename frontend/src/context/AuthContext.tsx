@@ -7,11 +7,19 @@ import React, {
   ReactNode,
 } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 interface AuthContextType {
   token: string | null;
   login: (token: string) => void;
   logout: () => void;
+  isAuthenticated: boolean;
+}
+
+interface TokenPayload {
+  sub: string;
+  rol: string;
+  id: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,17 +35,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (newToken: string) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
+    navigate("/dashboard");
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
-    navigate("/");
+    navigate("/login");
   };
 
-  const value = useMemo(() => ({ token, login, logout }), [token]);
+  const vl = useMemo(() => ({ token, login, logout }), [token]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={vl}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
@@ -46,4 +55,8 @@ export const useAuth = (): AuthContextType => {
     throw new Error("useAuth must be used within AuthProvider");
   }
   return ctx;
+};
+
+export const getUserFromToken = (token: string): TokenPayload => {
+  return jwtDecode<TokenPayload>(token);
 };
