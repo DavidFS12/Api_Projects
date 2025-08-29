@@ -1,3 +1,4 @@
+// src/context/AuthContext.tsx
 import React, {
   createContext,
   useContext,
@@ -14,16 +15,20 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
 type AuthProviderProps = { children: ReactNode };
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
   );
   const navigate = useNavigate();
+
   const login = (newToken: string) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
   };
+
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
@@ -31,13 +36,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const value = useMemo(() => ({ token, login, logout }), [token]);
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
   if (!ctx) {
-    throw new Error("Error proivido en useAuth");
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return ctx;
 };

@@ -1,11 +1,16 @@
-function Dashboard() {
+import React from "react";
+
+const Dashboard: React.FC = () => {
   return (
-    <div className="h-screen flex items-center justify-ceter bg-gray-50">
-      <h1 className="text-3xl font-bold text-green-700">
+    <div>
+      <h1 className="text-2xl font-bold text-green-600">
         Bienvenido al Dashboard
       </h1>
+      <p className="mt-2 text-gray-700">
+        Aquí irán las métricas principales de tu sistema.
+      </p>
     </div>
   );
-}
+};
 
 export default Dashboard;
