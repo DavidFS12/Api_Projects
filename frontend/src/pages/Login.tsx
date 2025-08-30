@@ -71,6 +71,7 @@ const Login: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-2 border rounded mb-3"
           required
+          autoComplete="current-password"
         />
         <button
           type="submit"
