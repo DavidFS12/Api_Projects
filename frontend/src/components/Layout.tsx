@@ -14,7 +14,7 @@ const Layout: React.FC = () => {
           <ul className="space-y-2 px-4">
             <li>
               <a
-                href="/dashboard"
+                href="/proyectos"
                 className="block p-2 rounded hover:bg-green-100"
               >
                 Dashboard
@@ -35,11 +35,11 @@ const Layout: React.FC = () => {
       {/* Main */}
       <div className="flex-1 flex flex-col">
         {/* Navbar */}
-        <header className="h-14 bg-green-600 text-white flex justify-between item-center px-6">
+        <header className="h-14 bg-green-600 text-white flex justify-between items-center px-6">
           <span className="font-semibold">Panel de Control</span>
           <button
             onClick={logout}
-            className="bg-white text-green 600 px-3 py-1 rounded hover:bg-gray-200"
+            className="bg-white text-green-600 px-3 py-1 rounded hover:bg-gray-200"
           >
             Cerrar sesion
           </button>
