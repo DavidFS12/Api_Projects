@@ -14,7 +14,7 @@ const Layout: React.FC = () => {
           <ul className="space-y-2 px-4">
             <li>
               <a
-                href="/dashboard"
+                href="/proyectos"
                 className="block p-2 rounded hover:bg-green-100"
               >
                 Dashboard

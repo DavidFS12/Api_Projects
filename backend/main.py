@@ -215,7 +215,7 @@ def eliminar_gasto(gasto_id:int, db:Session = Depends(get_db), current_user: mod
     db.delete(gasto)
     db.commit()
     
-    return {"message": "Gasto eliminado correctamente", "gasto": gasto}
+    return gasto
 
 #------------------- Proyecto + gastos --------------------------
 @app.post("/proyectos/{proyecto_id}/gastos", response_model=schemas.Gasto)
