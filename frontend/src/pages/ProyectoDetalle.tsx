@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 interface Gasto {
   id: number;
@@ -33,7 +33,7 @@ const ProyectoDetalle: React.FC = () => {
   });
   const [editandoGasto, setEditandoGasto] = useState<Gasto | null>(null);
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
   const fetchProyecto = () => {
     if (!token || !id) return;
     fetch(`http://localhost:8000/proyectos/${id}`, {
@@ -117,13 +117,63 @@ const ProyectoDetalle: React.FC = () => {
       .catch((err) => console.error("Error al eliminar gasto:", err));
   };
 
-  if (!proyecto) return <p>Cargando proyecto...</p>;
+  const handleDescargarExcel = async () => {
+    if (!token) return;
 
+    try {
+      const res = await fetch("http://localhost:8000/reportes/excel", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error al generar reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "reporte_gastos.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch {
+      console.error("error al descargar excel");
+    }
+  };
+
+  const handleDescargarPDF = async () => {
+    if (!token) return;
+
+    try {
+      const res = await fetch("http://localhost:8000/reportes/pdf", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Error al generar reporte PDF");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "reporte_gastos.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch {
+      console.error("error al descargar pdf");
+    }
+  };
+
+  if (!proyecto) return <p>Cargando proyecto...</p>;
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-4 text-green-600">
         {proyecto.nombre}
       </h1>
+      <div className="flex justify-end mb-4">
+        <button
+          type="submit"
+          onClick={() => navigate("/proyectos")}
+          className="bg-blue-600 hover:bg-blue-700 rounded px-4 py-2 text-white"
+        >
+          Regresar
+        </button>
+      </div>
       <p className="text-gray-500 mb-4">
         Inicio: {proyecto.fecha_inicio} | Fin: {proyecto.fecha_fin}
       </p>
@@ -182,7 +232,7 @@ const ProyectoDetalle: React.FC = () => {
           required
         />
         <textarea
-          placeholder="Descripción (opcional)"
+          placeholder="Descripción"
           value={nuevoGasto.descripcion}
           onChange={(e) =>
             setNuevoGasto({ ...nuevoGasto, descripcion: e.target.value })
@@ -195,6 +245,18 @@ const ProyectoDetalle: React.FC = () => {
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
           {loading ? "Guardando..." : "Agregar Gasto"}
+        </button>
+        <button
+          onClick={handleDescargarExcel}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Exportar Excel
+        </button>
+        <button
+          onClick={handleDescargarPDF}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Exportar PDF
         </button>
       </form>
 
