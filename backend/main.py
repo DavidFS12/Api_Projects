@@ -142,7 +142,7 @@ def actualizar_proyecto(proyecto_id: int, datos_update: schemas.ProyectoUpdate, 
     db.refresh(db_proyecto)
     return db_proyecto
 
-@app.delete("/proyectos/{proyectos_id}", response_model=schemas.Proyecto)
+@app.delete("/proyectos/{proyecto_id}", response_model=schemas.Proyecto)
 def eliminar_proyecto(proyecto_id:int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     proyecto = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id)
     if current_user.role != "admin":
@@ -153,7 +153,7 @@ def eliminar_proyecto(proyecto_id:int, db: Session = Depends(get_db), current_us
     db.delete(proyecto)
     db.commit()
     
-    return {"message": "Proyecto eliminado correctamente", "proyecto": proyecto}
+    return proyecto
 
 #------------------- GASTOS --------------------------
 
@@ -321,7 +321,7 @@ def exportar_excel(db:Session = Depends(get_db), current_user: schemas.User = De
 
     return FileResponse(filename, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename=filename)
 
-@app.get("reportes/pdf")
+@app.get("/reportes/pdf")
 def exportar_pdf(db:Session=Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     proyecto = db.query(models.Proyecto).filter(models.Proyecto.owner_id == current_user.id).all()
 
