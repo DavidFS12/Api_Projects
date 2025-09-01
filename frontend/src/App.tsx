@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import DashboardProyectos from "./pages/DashboardProyectos";
 import Layout from "./components/Layout";
 import PrivateRoute from "@/components/PrivateRoute";
 import ProyectoDetalle from "./pages/ProyectoDetalle";
@@ -11,10 +11,10 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route element={<Layout />}>
         <Route
-          path="/dashboard"
+          path="/proyectos"
           element={
             <PrivateRoute>
-              <Dashboard />
+              <DashboardProyectos />
             </PrivateRoute>
           }
         />
