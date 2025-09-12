@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 interface Gasto {
   id: number;
@@ -20,10 +21,18 @@ interface Proyecto {
   total_gastos?: number;
 }
 
+interface ResumenProyecto {
+  proyecto: Proyecto;
+  total_gastos: number;
+  numero_gastos: number;
+  gastos_por_categoria: Record<string, number>;
+}
+
 const ProyectoDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const token = localStorage.getItem("token");
   const [proyecto, setProyecto] = useState<Proyecto | null>(null);
+  const [resumen, setResumen] = useState<ResumenProyecto | null>(null);
   const [nuevoGasto, setNuevoGasto] = useState({
     nombre: "",
     cantidad: 0,
@@ -43,9 +52,19 @@ const ProyectoDetalle: React.FC = () => {
       .then((data) => setProyecto(data))
       .catch((err) => console.error(err));
   };
+  const fetchResumen = () => {
+    if (!token || !id) return;
+    fetch(`http://localhost:8000/proyectos/${id}/resumen`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => setResumen(data))
+      .catch((err) => console.error("Error en resumen, ", err));
+  };
 
   useEffect(() => {
     fetchProyecto();
+    fetchResumen();
   }, [token, id]);
 
   // --- CREAR ---
@@ -159,6 +178,13 @@ const ProyectoDetalle: React.FC = () => {
     }
   };
 
+  const COLORS = ["#16a34a", "#22c55e", "#86efac", "#15803d", "#4ade80"];
+  const dataChart = resumen
+    ? Object.entries(resumen.gastos_por_categoria).map(([cat, total]) => ({
+        name: cat,
+        value: total,
+      }))
+    : [];
   if (!proyecto) return <p>Cargando proyecto...</p>;
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -180,6 +206,61 @@ const ProyectoDetalle: React.FC = () => {
       <p className="text-green-600 font-semibold mb-6">
         Total Gastos: S/. {proyecto.total_gastos ?? 0}
       </p>
+
+      {/* RESUMEN DE PROYECTO*/}
+      {resumen && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-4 rounded-xl shadow">
+            <h3 className="text-gray-600"> Total de Gastos </h3>
+            <p className="text-2xl font-bold text-green-600">
+              S/. {resumen.total_gastos}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-xl shadow">
+            <h3 className="text-gray-600"> Numero de Gastos </h3>
+            <p className="text-2xl font-bold text-green-600">
+              S/. {resumen.numero_gastos}
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-xl shadow">
+            <h3 className="text-gray-600"> Categorías </h3>
+            <p className="text-2xl font-bold text-green-600">
+              {Object.keys(resumen.gastos_por_categoria).length}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* GRAFICO DE PROYECTO*/}
+      {resumen && dataChart.length > 0 && (
+        <div className="bg-white p-6 rounded-xl shadow mb-8">
+          <h2 className="text-xl font-boald mb-4"> Gastos por Categoria</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={dataChart}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={120}
+                fill="#16a34a"
+                dataKey="value"
+                label={({ name, percent }) =>
+                  `${name} ${(percent * 100).toFixed(0)}%`
+                }
+              >
+                {dataChart.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* FORM CREAR */}
       <h2 className="text-2xl font-bold mb-3">Agregar Gasto</h2>
