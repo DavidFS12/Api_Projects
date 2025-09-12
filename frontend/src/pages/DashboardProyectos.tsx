@@ -110,12 +110,20 @@ const DashboardProyectos: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-green-600">Mis proyectos</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-        >
-          + Nuevo Proyecto
-        </button>
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            + Nuevo Proyecto
+          </button>
+          <button
+            onClick={() => navigate("/reporte-general")}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Ver Reporte General
+          </button>
+        </div>
       </div>
 
       {/* Lista de proyectos */}

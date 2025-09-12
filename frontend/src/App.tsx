@@ -4,6 +4,7 @@ import DashboardProyectos from "./pages/DashboardProyectos";
 import Layout from "./components/Layout";
 import PrivateRoute from "@/components/PrivateRoute";
 import ProyectoDetalle from "./pages/ProyectoDetalle";
+import ReporteGeneral from "./pages/ReporteGeneral";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         />
       </Route>
       <Route path="/proyectos/:id" element={<ProyectoDetalle />} />
+      <Route path="/reporte-general" element={<ReporteGeneral />} />
     </Routes>
   );
 }
