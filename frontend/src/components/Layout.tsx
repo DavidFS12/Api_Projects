@@ -8,14 +8,14 @@ const Layout: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/*Sidebar*/}
-      <aside className="w-64 bg-white shadow-lg flex flex-col">
-        <div className="p-4 font-bold text-green-600 text-xl">Mi App</div>
+      <aside className="hidden md:block w-64 bg-gradient-to-t from-[#000] to-[#000051] shadow-lg flex-col">
+        <div className="p-4 font-bold text-white text-xl">Codeman</div>
         <nav className="flex-1">
           <ul className="space-y-2 px-4">
             <li>
               <a
                 href="/proyectos"
-                className="block p-2 rounded hover:bg-green-100"
+                className="block p-2 rounded hover:bg-blue-100 text-white hover:text-[#000051]"
               >
                 Dashboard
               </a>
@@ -23,7 +23,7 @@ const Layout: React.FC = () => {
             <li>
               <a
                 href="/proyectos"
-                className="block p-2 rounded hover:bg-green-100"
+                className="block p-2 rounded hover:bg-blue-100 text-white hover:text-[#000051]"
               >
                 Proyectos
               </a>
@@ -35,11 +35,11 @@ const Layout: React.FC = () => {
       {/* Main */}
       <div className="flex-1 flex flex-col">
         {/* Navbar */}
-        <header className="h-14 bg-green-600 text-white flex justify-between items-center px-6">
+        <header className="h-14 bg-[#000051] text-white flex justify-between items-center px-6">
           <span className="font-semibold">Panel de Control</span>
           <button
             onClick={logout}
-            className="bg-white text-green-600 px-3 py-1 rounded hover:bg-gray-200"
+            className="bg-white text-blue-600 px-3 py-1 rounded hover:bg-gray-200"
           >
             Cerrar sesion
           </button>

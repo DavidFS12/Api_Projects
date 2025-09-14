@@ -1,5 +1,8 @@
 import React, { useState, FormEvent } from "react";
 import { useAuth } from "@/context/AuthContext";
+import logo from "@/assets/codeman-1.png";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 interface LoginResponse {
   access_token: string;
@@ -10,51 +13,66 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [isExiting, setIsExiting] = useState<boolean>(false);
 
-  const { login } = useAuth(); // usamos login del contexto
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     try {
-      // Enviamos los datos como x-www-form-urlencoded (FastAPI espera esto)
       const res = await fetch("http://localhost:8000/login/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           username: email,
           password: password,
         }),
       });
 
-      // Si hay error de credenciales
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.detail || "Credenciales incorrectas");
       }
 
-      // Login correcto
       const data: LoginResponse = await res.json();
-
-      // Llamamos al contexto para guardar token y redirigir
       login(data.access_token);
+
+      // 👉 Aquí activamos animación de salida
+      setIsExiting(true);
+
+      // Navegamos cuando termine la animación (0.6s)
+      setTimeout(() => {
+        navigate("/proyectos"); // cambia a tu ruta real
+      }, 600);
     } catch (err: any) {
       setError(err.message || "Error inesperado");
     }
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100">
-      <form
+    <div className="h-screen w-full flex items-center justify-center bg-[#000051]">
+      <motion.form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-2xl shadow-lg w-80"
+        className="bg-white/50 backdrop-blur-lg p-8 rounded-2xl shadow-lg w-80 max-sm:mx-4 sm:mx-0"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={
+          isExiting
+            ? { opacity: 0, scale: 0.5, y: -100 }
+            : { opacity: 1, scale: 1 }
+        }
+        transition={{ duration: 0.6, ease: "easeInOut" }}
       >
-        <h1 className="text-2xl font-bold mb-4 text-center text-green-600">
+        <h1 className="text-3xl font-bold mb-4 text-center text-[#000051]">
           Iniciar Sesión
         </h1>
+        <img
+          src={logo}
+          alt="codeman logo"
+          className="mx-auto mb-4 w-32 h-auto"
+        />
         {error && <p className="text-red-500 mb-2">{error}</p>}
         <input
           type="email"
@@ -75,11 +93,11 @@ const Login: React.FC = () => {
         />
         <button
           type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+          className="w-full py-2 rounded-lg text-white font-semibold bg-[#001194] hover:bg-[#000051]"
         >
           Entrar
         </button>
-      </form>
+      </motion.form>
     </div>
   );
 };

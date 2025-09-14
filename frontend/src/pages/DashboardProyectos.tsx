@@ -114,22 +114,22 @@ const DashboardProyectos: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-green-600">Mis proyectos</h1>
+    <div className="max-w-6xl mx-auto sm:p-6">
+      <div className="flex-row md:flex justify-between items-center mb-6 gap-8">
+        <h1 className="text-3xl font-bold text-[#000051]">Mis proyectos</h1>
 
         {userRol === "admin" && (
           <div className="flex justify-end mb-4">
             <button
               onClick={() => navigate("/admin/usuarios")}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Gestion de Usuarios
             </button>
           </div>
         )}
 
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-start my-4 gap-2 md:gap-8">
           <button
             onClick={() => setShowModal(true)}
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -148,7 +148,7 @@ const DashboardProyectos: React.FC = () => {
       </div>
 
       {/* Lista de proyectos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {loading ? (
           <p>Cargando pryectos ...</p>
         ) : proyectos.length > 0 ? (
@@ -158,15 +158,17 @@ const DashboardProyectos: React.FC = () => {
               className="bg-white rounded-2xl shadow-lg p-5 flex flex-col justify-between hover:shadow-xl transition cursor-pointer"
             >
               <div>
-                <h2 className="text-xl font-bold mb-2">{p.nombre}</h2>
+                <h2 className="text-xl font-bold mb-2 text-[#000051]">
+                  {p.nombre}
+                </h2>
                 <p className="text-gray-500 text-sm">Agua: {p.agua}</p>
                 <p className="text-gray-500 text-sm">Luz: {p.luz}</p>
-              </div>
-              <div className="mt-4 flex justify-between items-center">
-                <span className="text-green-600 font-semibold">
+                <p className="text-[#000051] font-semibold">
                   Ubicacion: {p.location}
-                </span>
-                <div className="flex gap-2">
+                </p>
+              </div>
+              <div className="mt-4 justify-between items-center">
+                <div className="flex justify-between">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -205,9 +207,9 @@ const DashboardProyectos: React.FC = () => {
 
       {/* Modal para crear/editar */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-[#000]/80 flex items-center justify-center p-8">
           <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
+            <h2 className="text-xl font-bold mb-4 text-[#000051]">
               {editarProyecto ? "Editar Proyecto" : "Nuevo Proyecto"}
             </h2>
 
@@ -260,7 +262,7 @@ const DashboardProyectos: React.FC = () => {
                   setShowModal(false);
                   setEditarProyecto(null);
                 }}
-                className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
                 Cancelar
               </button>
