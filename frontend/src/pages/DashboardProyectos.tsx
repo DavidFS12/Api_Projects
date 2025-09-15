@@ -168,7 +168,7 @@ const DashboardProyectos: React.FC = () => {
                 </p>
               </div>
               <div className="mt-4 justify-between items-center">
-                <div className="flex justify-between">
+                <div className="flex justify-between sm:justify-start sm:gap-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

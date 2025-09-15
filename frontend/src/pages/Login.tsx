@@ -23,7 +23,7 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:8000/login/", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({

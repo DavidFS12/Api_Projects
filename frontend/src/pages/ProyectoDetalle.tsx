@@ -186,45 +186,39 @@ const ProyectoDetalle: React.FC = () => {
       }))
     : [];
   if (!proyecto) return <p>Cargando proyecto...</p>;
+
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4 text-green-600">
+    <div className="max-w-4xl mx-auto my-8 p-6 shadow-2xl rounded-2xl bg-white">
+      <h1 className="text-3xl font-bold mb-4 text-blue-700">
         {proyecto.nombre}
       </h1>
       <div className="flex justify-end mb-4">
         <button
           type="submit"
           onClick={() => navigate("/proyectos")}
-          className="bg-blue-600 hover:bg-blue-700 rounded px-4 py-2 text-white"
+          className="bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 text-white"
         >
           Regresar
         </button>
       </div>
-      <p className="text-gray-500 mb-4">
-        Inicio: {proyecto.fecha_inicio} | Fin: {proyecto.fecha_fin}
-      </p>
-      <p className="text-green-600 font-semibold mb-6">
-        Total Gastos: S/. {proyecto.total_gastos ?? 0}
-      </p>
-
       {/* RESUMEN DE PROYECTO*/}
       {resumen && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-4 rounded-xl shadow">
             <h3 className="text-gray-600"> Total de Gastos </h3>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-2xl font-bold text-blue-600">
               S/. {resumen.total_gastos}
             </p>
           </div>
           <div className="bg-white p-4 rounded-xl shadow">
             <h3 className="text-gray-600"> Numero de Gastos </h3>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-2xl font-bold text-blue-600">
               S/. {resumen.numero_gastos}
             </p>
           </div>
           <div className="bg-white p-4 rounded-xl shadow">
             <h3 className="text-gray-600"> Categorías </h3>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-2xl font-bold text-blue-600">
               {Object.keys(resumen.gastos_por_categoria).length}
             </p>
           </div>
@@ -263,7 +257,21 @@ const ProyectoDetalle: React.FC = () => {
       )}
 
       {/* FORM CREAR */}
-      <h2 className="text-2xl font-bold mb-3">Agregar Gasto</h2>
+      <div className="flex gap-4 justify-end">
+        <button
+          onClick={handleDescargarExcel}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Exportar Excel
+        </button>
+        <button
+          onClick={handleDescargarPDF}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Exportar PDF
+        </button>
+      </div>
+      <h2 className="text-2xl font-bold mb-3 text-blue-700">Agregar Gasto</h2>
       <form onSubmit={handleAgregarGasto} className="space-y-3 mb-6">
         <input
           type="text"
@@ -323,26 +331,14 @@ const ProyectoDetalle: React.FC = () => {
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
         >
           {loading ? "Guardando..." : "Agregar Gasto"}
-        </button>
-        <button
-          onClick={handleDescargarExcel}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          Exportar Excel
-        </button>
-        <button
-          onClick={handleDescargarPDF}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          Exportar PDF
         </button>
       </form>
 
       {/* LISTA GASTOS */}
-      <h2 className="text-2xl font-bold mb-3">Gastos</h2>
+      <h2 className="text-2xl font-bold mb-3 text-blue-700">Gastos</h2>
       {proyecto.gastos.length > 0 ? (
         <div className="space-y-3">
           {proyecto.gastos.map((gasto) => (
@@ -405,19 +401,21 @@ const ProyectoDetalle: React.FC = () => {
                     }
                     className="w-full p-2 border rounded"
                   />
-                  <button
-                    type="submit"
-                    className="px-3 py-1 bg-green-600 text-white rounded"
-                  >
-                    Guardar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditandoGasto(null)}
-                    className="px-3 py-1 bg-gray-400 text-white rounded"
-                  >
-                    Cancelar
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="px-3 py-1 bg-green-600 text-white rounded-lg"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditandoGasto(null)}
+                      className="px-3 py-1 bg-gray-400 text-white rounded-lg"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 </form>
               ) : (
                 <>
@@ -436,13 +434,13 @@ const ProyectoDetalle: React.FC = () => {
                   <div className="mt-2 flex gap-2">
                     <button
                       onClick={() => handleEditarGasto(gasto)}
-                      className="px-3 py-1 bg-blue-500 text-white rounded"
+                      className="px-3 py-1 bg-blue-600 text-white rounded-lg"
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => handleEliminarGasto(gasto.id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded"
+                      className="px-3 py-1 bg-red-600 text-white rounded-lg"
                     >
                       Eliminar
                     </button>
