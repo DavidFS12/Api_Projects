@@ -5,9 +5,9 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from app.db.database import SessionLocal
-from app import models
-from app.db.deps import get_db
+from backend.app.db.database import SessionLocal
+from backend.app import models
+from backend.app.db.deps import get_db
 
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
