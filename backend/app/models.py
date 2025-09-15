@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship
-from .db.database import Base
+from backend.app.db.database import Base
 
 
 #------------------- USUARIOS --------------------------

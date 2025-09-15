@@ -15,7 +15,7 @@ from backend.app.db.deps import get_db
 from openpyxl import Workbook
 from jose import jwt
 from datetime import datetime, timedelta
-from auth import authenticate_user, create_access_token, get_password_hash, get_current_user
+from backend.auth import authenticate_user, create_access_token, get_password_hash, get_current_user
 import pandas as pd
 from typing import Optional
 from datetime import date
