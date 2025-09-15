@@ -9,9 +9,9 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import func
-from app import models, schemas
-from app.db.database import engine, SessionLocal
-from app.db.deps import get_db
+from backend.app import models, schemas
+from backend.app.db.database import engine, SessionLocal
+from backend.app.db.deps import get_db
 from openpyxl import Workbook
 from jose import jwt
 from datetime import datetime, timedelta
