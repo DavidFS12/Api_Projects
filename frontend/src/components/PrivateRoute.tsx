@@ -2,7 +2,10 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
-const PrivateRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
+//const PrivateRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { token } = useAuth();
   const isLoading = token === undefined; // undefined solo antes de inicializar
   const isAuthenticated = !!token;

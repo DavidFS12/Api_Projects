@@ -44,7 +44,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     navigate("/login");
   };
 
-  const vl = useMemo(() => ({ token, login, logout }), [token]);
+  //const vl = useMemo(() => ({ token, login, logout }), [token]);
+  const vl: AuthContextType = {
+    token,
+    login,
+    logout,
+    isAuthenticated: !!token,
+  };
 
   return <AuthContext.Provider value={vl}>{children}</AuthContext.Provider>;
 };

@@ -240,7 +240,7 @@ const ProyectoDetalle: React.FC = () => {
                 fill="#16a34a"
                 dataKey="value"
                 label={({ name, percent }) =>
-                  `${name} ${(percent * 100).toFixed(0)}%`
+                  `${name} ${(percent ?? 0).toFixed(0)}%`
                 }
               >
                 {dataChart.map((_, index) => (
