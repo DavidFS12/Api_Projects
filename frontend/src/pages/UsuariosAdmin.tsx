@@ -21,7 +21,7 @@ const UsuariosAdmin: React.FC = () => {
       return;
     }
 
-    fetch("http://localhost:8000/admin/usuarios", {
+    fetch(`${import.meta.env.VITE_API_URL}/admin/usuarios`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

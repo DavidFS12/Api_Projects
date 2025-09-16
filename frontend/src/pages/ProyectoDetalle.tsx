@@ -45,7 +45,7 @@ const ProyectoDetalle: React.FC = () => {
   const navigate = useNavigate();
   const fetchProyecto = () => {
     if (!token || !id) return;
-    fetch(`http://localhost:8000/proyectos/${id}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/proyectos/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -54,7 +54,7 @@ const ProyectoDetalle: React.FC = () => {
   };
   const fetchResumen = () => {
     if (!token || !id) return;
-    fetch(`http://localhost:8000/proyectos/${id}/resumen`, {
+    fetch(`${import.meta.env.VITE_API_URL}/proyectos/${id}/resumen`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -73,7 +73,7 @@ const ProyectoDetalle: React.FC = () => {
     if (!token || !id) return;
 
     setLoading(true);
-    fetch(`http://localhost:8000/proyectos/${id}/gastos`, {
+    fetch(`${import.meta.env.VITE_API_URL}/proyectos/${id}/gastos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -105,7 +105,7 @@ const ProyectoDetalle: React.FC = () => {
     e.preventDefault();
     if (!editandoGasto || !token) return;
 
-    fetch(`http://localhost:8000/gastos/${editandoGasto.id}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/gastos/${editandoGasto.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -127,7 +127,7 @@ const ProyectoDetalle: React.FC = () => {
 
     if (!window.confirm("¿Seguro que deseas eliminar este gasto?")) return;
 
-    fetch(`http://localhost:8000/gastos/${gastoId}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/gastos/${gastoId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -140,9 +140,12 @@ const ProyectoDetalle: React.FC = () => {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:8000/reportes/excel", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/reportes/excel`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!res.ok) throw new Error("Error al generar reporte");
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -161,7 +164,7 @@ const ProyectoDetalle: React.FC = () => {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:8000/reportes/pdf", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/reportes/pdf`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Error al generar reporte PDF");

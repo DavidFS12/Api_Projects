@@ -35,7 +35,7 @@ const ReporteGeneral: React.FC = () => {
   useEffect(() => {
     if (!token) return;
 
-    fetch("http://localhost:8000/reportes/general", {
+    fetch(`${import.meta.env.VITE_API_URL}/reportes/general`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

@@ -35,7 +35,7 @@ const DashboardProyectos: React.FC = () => {
       setUserRol(user.rol);
       console.log("usuario tipo: ", user.rol);
     }
-    fetch("http://localhost:8000/proyectos", {
+    fetch(`${import.meta.env.VITE_API_URL}/proyectos`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -63,8 +63,8 @@ const DashboardProyectos: React.FC = () => {
 
     try {
       const url = editarProyecto
-        ? `http://localhost:8000/proyectos/${editarProyecto.id}`
-        : `http://localhost:8000/proyectos/`;
+        ? `${import.meta.env.VITE_API_URL}/proyectos/${editarProyecto.id}`
+        : `${import.meta.env.VITE_API_URL}/proyectos/`;
       const method = editarProyecto ? "PUT" : "POST";
       const res = await fetch(url, {
         method: method,
@@ -101,7 +101,7 @@ const DashboardProyectos: React.FC = () => {
   const handleEliminarProyecto = async (proyectos_id: number) => {
     if (!token) return;
 
-    fetch(`http://localhost:8000/proyectos/${proyectos_id}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/proyectos/${proyectos_id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     })
